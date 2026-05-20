@@ -1,46 +1,139 @@
 #include <iostream>
-#include <cstdlib> // Necesaria para usar rand(), srand() y la memoria dinámica
-#include <ctime>   // Necesaria para usar clock() y medir el tiempo
+#include <cstdlib> // Necesario para rand() y srand()
+#include <ctime>   // Necesario para clock() y clock_t
 
 using namespace std;
 
-int main() {
-    // PASO 1: Pedir datos al usuario y reservar memoria
-    int semilla, n;
-    int pos_inicial, pos_final;
+// -------------------------------------------------------------------------
+// ALGORITMO DE INSERCIÓN (Traducido del pseudocódigo)
+// Nota: Pasamos el vector V como puntero (*V) igual que en la práctica 1.
+// -------------------------------------------------------------------------
+void Insercion(int *V, int n) {
+    int i, j, x;
+    
+    // Bucle para: desde 2 hasta n (porque la posición 0 no se usa y asumimos que V[1] está "ordenado")
+    for (i = 2; i <= n; i++) {
+        x = V[i];
+        j = i - 1;
+        
+        // Bucle mientras: desplaza los elementos mayores que 'x' hacia la derecha
+        while (j > 0 && V[j] > x) {
+            V[j + 1] = V[j];
+            j = j - 1;
+        }
+        V[j + 1] = x;
+    }
+}
 
-    // Pedir la semilla y configurar el generador de números aleatorios
+// Función auxiliar para no repetir código al imprimir los vectores.
+// Solo imprime desde la posición 'inicial' hasta 'final' que diga el usuario.
+void imprimirVector(int *V, int inicial, int final) {
+    for (int i = inicial; i <= final; i++) {
+        cout << V[i] << " ";
+    }
+    cout << endl;
+}
+
+int main() {
+    int semilla, n, inicial, final;
+
+    // --- ENTRADA DE DATOS ---
     cout << "Semilla inicial para generar numeros aleatorios: ";
     cin >> semilla;
-    srand(semilla); // Esta función "planta" la semilla para que rand() funcione bien
-
-    // Pedir el tamaño del vector
-    cout << "Introduce tamaño del vector (n): ";
+    cout << "Introduce tamano del vector (n): ";
     cin >> n;
-
-    // Pedir el rango de posiciones que queremos imprimir por pantalla
     cout << "Posiciones inicial y final del vector para mostrar" << endl;
     cout << "Inicial: ";
-    cin >> pos_inicial;
+    cin >> inicial;
     cout << "Final: ";
-    cin >> pos_final;
-    cout << endl; // Un salto de línea extra para que quede limpio
+    cin >> final;
+    cout << endl;
 
-    // Declarar los punteros para los tres vectores
-    int *vmejor, *vcualquiera, *vpeor;
+    // Inicializamos el generador de números aleatorios con la semilla
+    srand(semilla);
 
-    // Reservar la memoria dinámica (igual que en la Práctica 1)
-    vmejor = new int[n + 1];
-    vcualquiera = new int[n + 1];
-    vpeor = new int[n + 1];
+    // --- RESERVA DE MEMORIA ---
+    // Recordamos la regla de oro: tamaño n + 1
+    int *vmejor = new int[n + 1];
+    int *vcualquiera = new int[n + 1];
+    int *vpeor = new int[n + 1];
 
-    // Comprobación de seguridad
     if (vmejor == NULL || vcualquiera == NULL || vpeor == NULL) {
-        cout << "Error al reservar memoria" << endl;
+        cout << "Error de memoria." << endl;
         return -1;
     }
 
-    // (Aquí irá el Paso 2: Rellenar los vectores)
+    // --- INICIALIZACIÓN DE LOS VECTORES ---
+    for (int i = 1; i <= n; i++) {
+        vmejor[i] = i;              // CASO MEJOR: Ya está ordenado ascendentemente (1, 2, 3...)
+        vpeor[i] = (n - i) + 1;     // CASO PEOR: Está ordenado al revés (n, n-1, n-2...)
+        vcualquiera[i] = rand();    // CASO CUALQUIERA: Números aleatorios
+    }
+
+    cout << "ALGORITMO DE INSERCION\n" << endl;
+
+    // Variables para medir el tiempo
+    clock_t tinicio, tfin;
+    double tiempo;
+
+    // ==========================================
+    // CASO MEJOR
+    // ==========================================
+    cout << "CASO MEJOR" << endl;
+    cout << "--------------------" << endl;
+    cout << "Vector a ordenar: ";
+    imprimirVector(vmejor, inicial, final);
+
+    // Medimos el tiempo justo antes y justo después de llamar a la función
+    tinicio = clock();
+    Insercion(vmejor, n);
+    tfin = clock();
+
+    // Fórmula del PDF para calcular los milisegundos
+    tiempo = (double)(tfin - tinicio) / CLOCKS_PER_SEC * 1000.0;
+
+    cout << "Vector ordenado:  ";
+    imprimirVector(vmejor, inicial, final);
+    cout << "Tiempo de ejecucion (ms): " << tiempo << "\n\n";
+
+    // ==========================================
+    // CASO CUALQUIERA
+    // ==========================================
+    cout << "CASO CUALQUIERA" << endl;
+    cout << "--------------------" << endl;
+    cout << "Vector a ordenar: ";
+    imprimirVector(vcualquiera, inicial, final);
+
+    tinicio = clock();
+    Insercion(vcualquiera, n);
+    tfin = clock();
+    tiempo = (double)(tfin - tinicio) / CLOCKS_PER_SEC * 1000.0;
+
+    cout << "Vector ordenado:  ";
+    imprimirVector(vcualquiera, inicial, final);
+    cout << "Tiempo de ejecucion (ms): " << tiempo << "\n\n";
+
+    // ==========================================
+    // CASO PEOR
+    // ==========================================
+    cout << "CASO PEOR" << endl;
+    cout << "--------------------" << endl;
+    cout << "Vector a ordenar: ";
+    imprimirVector(vpeor, inicial, final);
+
+    tinicio = clock();
+    Insercion(vpeor, n);
+    tfin = clock();
+    tiempo = (double)(tfin - tinicio) / CLOCKS_PER_SEC * 1000.0;
+
+    cout << "Vector ordenado:  ";
+    imprimirVector(vpeor, inicial, final);
+    cout << "Tiempo de ejecucion (ms): " << tiempo << "\n\n";
+
+    // --- LIBERAR MEMORIA (¡El camión de la basura!) ---
+    delete[] vmejor;
+    delete[] vcualquiera;
+    delete[] vpeor;
 
     system("pause");
     return 0;

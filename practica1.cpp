@@ -103,6 +103,10 @@ int main() {
     // Y por último con el vector vcualquiera
     cout << "Numero veces: " << Contar(vcualquiera, n, x) << endl << endl;
 
+    delete[] vpeor;
+    delete[] vmejor;
+    delete[] vcualquiera;
+
     system("pause");
     return 0;
 }
